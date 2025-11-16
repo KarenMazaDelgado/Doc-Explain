@@ -1,103 +1,82 @@
-package com.example.myapplication
-
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.example.myapplication.ui.theme.MyApplicationTheme
-
-
-import androidx.compose.animation.core.EaseInOut
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.tween
-import androidx.compose.runtime.getValue // Import for the delegated property
-
-// ... (other imports from your original MainActivity)
-
-@Composable
-fun SplashScreen(onTimeout: () -> Unit) {
-    // 1. Logic to switch to the Landing Screen after 3 seconds
-    LaunchedEffect(key1 = true) {
-        delay(3000L) // 3 seconds delay
-        onTimeout()
-    }
-
-    // 2. State for the pulse animation
-    val pulseState = remember { mutableStateOf(false) }
-
-    // 3. Start the pulse immediately and infinitely repeat it
-    LaunchedEffect(key1 = true) {
-        pulseState.value = true
-    }
-
-    // 4. Define the animated scale value
-    val scale by animateFloatAsState(
-        targetValue = if (pulseState.value) 1.1f else 1.0f, // Scale up to 110%
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 800, easing = EaseInOut),
-            repeatMode = RepeatMode.Reverse // Go back and forth (pulsate)
-        ), label = "logoScale"
-    )
-
-    // Design the logo screen
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF1E2A38)), // Dark background
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Image for the logo, using the calculated 'scale'
-        Image(
-            painter = painterResource(id = R.drawable.app_logo), // **Remember to add app_logo.png to res/drawable**
-            contentDescription = "App Logo",
-            modifier = Modifier
-                .size(120.dp)
-                .scale(scale) // Apply the animation scale
-        )
-
-        Spacer(Modifier.height(32.dp))
-        CircularProgressIndicator(color = Color.White)
-    }
+plugins {
+    id("com.android.application")
+    id("org.jetbrains.kotlin.android")
 }
-class MainActivity : ComponentActivity() {
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            MyApplicationTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
-            }
+
+android {
+    namespace = "com.example.myapplication"
+    compileSdk = 34
+
+    defaultConfig {
+        applicationId = "com.example.myapplication"
+        minSdk = 24
+        targetSdk = 34
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+        }
+        debug {
+            isMinifyEnabled = false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    kotlinOptions {
+        jvmTarget = "17"
+    }
+
+    buildFeatures {
+        compose = true
+    }
+
+    composeOptions {
+        kotlinCompilerExtensionVersion = "1.5.14"
+    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hellofgh $name!",
-        modifier = modifier
-    )
-}
+dependencies {
+    val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
+    implementation(composeBom)
+    androidTestImplementation(composeBom)
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    MyApplicationTheme {
-        Greeting("Android")
-    }
+    implementation("androidx.core:core-ktx:1.13.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.4")
+    implementation("androidx.activity:activity-compose:1.9.2")
+
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.ui:ui-tooling-preview")
+    implementation("androidx.compose.material3:material3")
+
+    // CameraX
+    val cameraxVersion = "1.3.4"
+    implementation("androidx.camera:camera-core:$cameraxVersion")
+    implementation("androidx.camera:camera-camera2:$cameraxVersion")
+    implementation("androidx.camera:camera-lifecycle:$cameraxVersion")
+    implementation("androidx.camera:camera-view:1.3.4")
+
+    // ML Kit Text Recognition (on-device, no backend needed)
+    implementation("com.google.mlkit:text-recognition:16.0.0")
+
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    androidTestImplementation("androidx.test.ext:junit:1.2.1")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 }
